@@ -1,15 +1,20 @@
 package org.apodhrad.phrasedroid;
 
-import android.app.Activity;
+import java.io.File;
+
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -99,9 +104,26 @@ public class NavigationDrawerFragment extends Fragment {
 			}
 		});
 		mDrawerListView.setAdapter(new ArrayAdapter<String>(getActionBar().getThemedContext(),
-				android.R.layout.simple_list_item_activated_1, android.R.id.text1, MenuList.getMenuItems()));
+				android.R.layout.simple_list_item_activated_1, android.R.id.text1, getMenuItems()));
 		mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
 		return mDrawerListView;
+	}
+	
+	private String[] getMenuItems() {
+		Repository repository;
+		try {
+			repository = Repository.getInstance(getActivity().getFilesDir().getAbsolutePath(), isNetworkAvailable());
+		} catch (Exception e) {
+			e.printStackTrace();
+			Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+			return new String[] {};
+		} 
+		File[] files = repository.getFiles();
+		String[] items = new String[files.length];
+		for (int i = 0; i < files.length; i++) {
+				items[i] = files[i].getName().replace(".md", "");
+		}
+		return items;
 	}
 
 	public boolean isDrawerOpen() {
@@ -256,6 +278,18 @@ public class NavigationDrawerFragment extends Fragment {
 		}
 
 		if (item.getItemId() == R.id.action_update) {
+			if (!isNetworkAvailable()) {
+				Toast.makeText(getActivity(), "No internet connection " + getActivity(), Toast.LENGTH_SHORT).show();
+				return false;
+			}
+			try {
+				Repository.getInstance(getActivity().getFilesDir().getAbsolutePath()).update();
+			} catch (Exception e) {
+				e.printStackTrace();
+				Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
+			} 
+			mDrawerListView.setAdapter(new ArrayAdapter<String>(getActionBar().getThemedContext(),
+					android.R.layout.simple_list_item_activated_1, android.R.id.text1, getMenuItems()));
 			Toast.makeText(getActivity(), "Updated", Toast.LENGTH_SHORT).show();
 			return true;
 		}
@@ -277,6 +311,12 @@ public class NavigationDrawerFragment extends Fragment {
 
 	private ActionBar getActionBar() {
 		return getActivity().getActionBar();
+	}
+	
+	public boolean isNetworkAvailable() {
+	    ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+	    return networkInfo != null && networkInfo.isConnected();
 	}
 
 	/**

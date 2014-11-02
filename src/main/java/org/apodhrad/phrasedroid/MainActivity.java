@@ -1,21 +1,24 @@
 package org.apodhrad.phrasedroid;
 
-import android.app.Activity;
+import org.markdown4j.Markdown4jProcessor;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
-import android.os.Build;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.view.Gravity;
+import android.os.StrictMode;
+import android.support.v4.widget.DrawerLayout;
+import android.text.Html;
+import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.support.v4.widget.DrawerLayout;
-import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 public class MainActivity extends Activity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -34,6 +37,10 @@ public class MainActivity extends Activity implements NavigationDrawerFragment.N
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		// Call requires API levl 9
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy);
+		
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
@@ -54,14 +61,6 @@ public class MainActivity extends Activity implements NavigationDrawerFragment.N
 	}
 
 	public void onSectionAttached(int number) {
-		switch (number) {
-		case 1:
-			break;
-		case 2:
-			break;
-		case 3:
-			break;
-		}
 	}
 
 	public void restoreActionBar() {
@@ -122,9 +121,26 @@ public class MainActivity extends Activity implements NavigationDrawerFragment.N
 
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+			int index = getArguments().getInt(ARG_SECTION_NUMBER);
+			String folder = getActivity().getFilesDir().getAbsolutePath();
+			String content = "";
+			
+			try {
+				Repository repository = Repository.getInstance(folder, false);
+				if (repository.exists()) {
+					content = new Markdown4jProcessor().process(repository.getFile(index - 1));
+				} else {
+					content = "No internet connection";
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				content = e.getMessage();
+			}
+			
 			View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 			TextView textView = (TextView) rootView.findViewById(R.id.mainTextView);
-			textView.setText(MenuList.getContent(getArguments().getInt(ARG_SECTION_NUMBER)));
+			textView.setMovementMethod(new ScrollingMovementMethod());
+			textView.setText(Html.fromHtml(content));
 			return rootView;
 		}
 
@@ -133,6 +149,12 @@ public class MainActivity extends Activity implements NavigationDrawerFragment.N
 			super.onAttach(activity);
 			((MainActivity) activity).onSectionAttached(getArguments().getInt(ARG_SECTION_NUMBER));
 		}
+
+		public boolean isNetworkAvailable() {
+		    ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+		    NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+		    return networkInfo != null && networkInfo.isConnected();
+		} 
 	}
 
 }

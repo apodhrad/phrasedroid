@@ -26,6 +26,16 @@
 	    <artifactId>android-support</artifactId>
 	    <version>v4</version>
 	  </dependency>
+	  <dependency>
+	    <groupId>org.eclipse.jgit</groupId>
+	    <artifactId>org.eclipse.jgit</artifactId>
+	    <version>3.5.1.201410131835-r</version>
+	  </dependency>
+	  <dependency>
+	    <groupId>org.commonjava.googlecode.markdown4j</groupId>
+	    <artifactId>markdown4j</artifactId>
+	    <version>2.2-cj-1.0</version>
+	  </dependency>
 	</dependencies>
 
 	<build>

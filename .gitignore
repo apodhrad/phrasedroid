@@ -12,3 +12,4 @@ release.properties
 
 # Binary files
 bin/
+gen/
