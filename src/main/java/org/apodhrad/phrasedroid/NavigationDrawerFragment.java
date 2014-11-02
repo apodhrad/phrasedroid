@@ -112,7 +112,7 @@ public class NavigationDrawerFragment extends Fragment {
 	private String[] getMenuItems() {
 		Repository repository;
 		try {
-			repository = Repository.getInstance(getActivity().getFilesDir().getAbsolutePath(), isNetworkAvailable());
+			repository = Repository.getInstance(getActivity().getFilesDir().getAbsolutePath(), false);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_LONG).show();
