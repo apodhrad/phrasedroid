@@ -140,7 +140,7 @@ public class MainActivity extends Activity implements NavigationDrawerFragment.N
 			View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 			TextView textView = (TextView) rootView.findViewById(R.id.mainTextView);
 			textView.setMovementMethod(new ScrollingMovementMethod());
-			textView.setText(Html.fromHtml(content));
+			textView.setText(Html.fromHtml(content, null, new ListTagHandler()));
 			return rootView;
 		}
 
